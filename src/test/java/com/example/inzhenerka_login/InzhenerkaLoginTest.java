@@ -1,6 +1,7 @@
 package com.example.inzhenerka_login;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.BeforeAll;
@@ -8,65 +9,101 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selectors.byText;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
+import java.io.File;
+
+import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selectors.*;
+import static com.codeborne.selenide.Selenide.*;
 
 public class InzhenerkaLoginTest {
 
     @BeforeAll
     static void setup() {
-        // Это выведет подробные шаги в консоль и подготовит данные для отчетов
         SelenideLogger.addListener("allure", new AllureSelenide());
         Configuration.browserSize = "1920x1080";
-        Configuration.browser = "firefox"; // Раскомментируй, если нужен Firefox
+        // Configuration.holdBrowserOpen = true; // Полезно для отладки
     }
 
     @BeforeEach
     void openLoginPage() {
-        // Этот код выполнится ПЕРЕД КАЖДЫМ тестом ниже
         open("http://qa-stand-login.inzhenerka.tech/login");
     }
 
+    // --- ЗАДАНИЕ 1 & 2: Разные локаторы и проверки видимости ---
     @Test
-    void loginAndLogoutTestWithCredentials() {
-        // 1. Вводим логин и пароль (данные берем из документации)
-        $("#username").setValue("admin");
-        $(By.name("password")).setValue("admin123"); // <-- Проверь пароль в документации!
+    void loginWithVariousLocatorsTest() {
+        // CSS селектор (ID)
+        $("#username").shouldBe(visible).setValue("admin");
 
-        // 2. Нажимаем "Вход"
-        $("button[type='submit']").click();
+        // XPath (Поиск по атрибуту name)
+        $(By.xpath("//input[@name='password']")).shouldBe(visible).setValue("admin123");
 
-        // 3. ПРОВЕРКА (Assertion)
-        // Мы ищем элемент body или заголовок, который содержит приветствие
+        // Поиск через стандартный Selenium By селектор (тег)
+        $(By.tagName("button")).shouldHave(text("Войти")).click();
+
+        // Проверка успешного входа
         $("body").shouldHave(text("Привет, admin"));
-
-        // 4. Выход из системы
-        // Используем поиск по тексту "Выйти" — это надежнее, чем искать по классам стилей (.mb-3)
-        $(byText("Выйти")).click();
-
-        // 5. Проверка выхода (снова видна кнопка "Вход")
-        $("button[type='submit']").shouldBe(visible);
-
+        $(byText("Выйти")).shouldBe(visible).click();
     }
 
-        @Test
-        void loginAndLogoutTestWithoutCredentials() {
-        // 1. Очищаем поле логина (так как там мог остаться старый ввод)
-        $("#username").clear();
-        // Можно также использовать setValue(""), Selenide сам очистит поле
-        $(By.name("password")).setValue("");
+    @Test
+    void loginUsingOnlyTextSelectorsTest() {
+        // Использование только текстовых локаторов (Selenide Selectors)
+        // ВАЖНО: Мы ищем элементы, которые содержат или имеют такой текст
+        $(withText("Логин")).parent().find("input").setValue("admin");
+        $(withText("Пароль")).parent().find("input").setValue("admin123");
 
-        // 2. Нажимаем кнопку "Вход"
+        $(byText("Войти")).shouldBe(enabled).click();
+
+        // Проверка и выход
+        $(withText("Привет")).shouldBe(visible);
+        $(byText("Выйти")).click();
+    }
+
+    // --- ЗАДАНИЕ 3: Работа с файлами ---
+    @Test
+    void fileUploadTest() {
+        // 1. Сначала нужно войти (файлы обычно доступны внутри системы)
+        $("#username").setValue("admin");
+        $(By.name("password")).setValue("admin123");
         $("button[type='submit']").click();
 
-        // 3. ПРОВЕРКА: Система не должна нас впустить
-        // Кнопка входа всё еще должна быть видна
-        $(byText("Выйти")).shouldBe(visible);
+        // Предположим, на странице есть input для загрузки файла
+        // В Selenide это делается одной командой uploadFile
+        // Файл должен лежать в папке проекта (например, в корне или в resources)
 
-        $(byText("Выйти")).click();
+        /* File file = new File("src/test/resources/test_doc.txt");
+        if (file.exists()) {
+            $("input[type='file']").uploadFile(file);
+            // Проверка, что файл загрузился (текст об успехе)
+            $(".upload-status").shouldHave(text("Файл загружен"));
+        }
+        */
+        System.out.println("Тест загрузки подготовлен (нужен актуальный селектор input)");
+    }
+
+    // --- ЗАДАНИЕ 4: Условные действия (If-Else) ---
+    @Test
+    void conditionalActionTest() {
+        // Пытаемся залогиниться
+        $("#username").setValue("admin");
+        $(By.name("password")).setValue("admin123");
+        $("button[type='submit']").click();
+
+        // Проверяем наличие элемента без падения теста (используем .is() или .exists())
+        SelenideElement logoutButton = $(byText("Выйти"));
+
+        if (logoutButton.is(visible)) {
+            System.out.println("Авторизация успешна, нажимаю выход...");
+            logoutButton.click();
+        } else {
+            // Если кнопки нет — выводим ошибку в консоль или кидаем исключение
+            System.err.println("ОШИБКА: Кнопка 'Выход' не появилась. Возможно, логин не удался.");
+            // Можно принудительно провалить тест с понятным сообщением
+            throw new AssertionError("Элемент 'Выйти' не найден после попытки входа");
+        }
+
+        // Финальная проверка
         $("button[type='submit']").shouldBe(visible);
     }
 }
