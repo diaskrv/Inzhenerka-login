@@ -15,6 +15,7 @@ public class BaseTest {
     }
 
     @AfterEach
+    //Logging out after every test
     public void tearDownTest() {
         LoginPage loginPage = new LoginPage();
         loginPage.logout();
