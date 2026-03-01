@@ -1,6 +1,6 @@
 package com.example.inzhenerka_login;
 
-import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.*;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.AfterEach;
@@ -11,13 +11,12 @@ public class BaseTest {
     static void setup() {
         SelenideLogger.addListener("allure", new AllureSelenide());
         Configuration.browserSize = "1920x1080";
-        // Configuration.holdBrowserOpen = true; // Полезно для отладки
+        Configuration.timeout = 5000;
     }
 
     @AfterEach
-    //Logging out after every test
-    public void tearDownTest() {
-        LoginPage loginPage = new LoginPage();
-        loginPage.logout();
+    //Closing browser
+    public void tearDown() {
+        Selenide.closeWebDriver();
     }
 }

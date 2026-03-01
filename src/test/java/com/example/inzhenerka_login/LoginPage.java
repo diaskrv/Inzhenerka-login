@@ -4,12 +4,10 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.By;
 
-import java.io.File;
-
 import static com.codeborne.selenide.Selectors.*;
 import static com.codeborne.selenide.Selenide.*;
 
-public class LoginPage extends BaseTest{
+public class LoginPage{
 
     private final SelenideElement loginField = $("#username");
     private final SelenideElement passwordField = $(By.name("password"));
@@ -40,25 +38,4 @@ public class LoginPage extends BaseTest{
     public void checkWelcomeText(String expectedText) {
         welcomeMessage.shouldHave(Condition.text(expectedText));
     }
-
-//    @Test
-//    void fileUploadTest() {
-//        // 1. Сначала нужно войти (файлы обычно доступны внутри системы)
-//        $("#username").setValue("admin");
-//        $(By.name("password")).setValue("admin123");
-//        $("button[type='submit']").click();
-//
-//        // Предположим, на странице есть input для загрузки файла
-//        // В Selenide это делается одной командой uploadFile
-//        // Файл должен лежать в папке проекта (например, в корне или в resources)
-//
-//        /* File file = new File("src/test/resources/test_doc.txt");
-//        if (file.exists()) {
-//            $("input[type='file']").uploadFile(file);
-//            // Проверка, что файл загрузился (текст об успехе)
-//            $(".upload-status").shouldHave(text("Файл загружен"));
-//        }
-//        */
-//        System.out.println("Тест загрузки подготовлен (нужен актуальный селектор input)");
-//    }
 }
