@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.openqa.selenium.By;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import static com.codeborne.selenide.Selenide.*;
@@ -26,6 +28,8 @@ public class TicketonTestFields {
 
     @BeforeEach
     void closeBanner() {
+        clearBrowserCookies();
+        clearBrowserLocalStorage();
         open("/");
         var closeButton = $("[class^='MainBannerModal_closeIcon']");
 
@@ -58,16 +62,23 @@ public class TicketonTestFields {
                 Arguments.of("Қаз", "ru", "Оқиғалар")
         );
     }
+    @ParameterizedTest
+    @CsvSource(value = {
+            "Астана",
+            "Алматы",
+            "Караганда"
+    })
+    void testCitySelectionFilter(String city) {
+        var cityButton = $("[class^='CitySelect_markerClickableArea']");
+        cityButton.shouldBe(Condition.visible).click();
 
-    @Test
-    void testCitySelectionFilter() {
-        open("/");
+        var dropdown = $("[class^='DropdownList_dropdownList']").shouldBe(Condition.visible);
 
-        $("[data-testid='city-selector-trigger']").click();
+        dropdown.$(withText(city)).closest("li").click();
 
-        $(By.linkText("Алматы")).click();
-
-        $("[data-testid='city-selector-trigger']").shouldHave(Condition.text("Алматы"));
+        $("[data-testid='city-selector-trigger']")
+                .shouldBe(Condition.visible, Duration.ofSeconds(10))
+                .shouldHave(Condition.text(city));
     }
 
     @Disabled
