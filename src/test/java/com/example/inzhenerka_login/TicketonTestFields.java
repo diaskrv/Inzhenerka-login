@@ -2,15 +2,12 @@ package com.example.inzhenerka_login;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import java.time.Duration;
 import java.util.stream.Stream;
@@ -28,8 +25,6 @@ public class TicketonTestFields {
 
     @BeforeEach
     void closeBanner() {
-        clearBrowserCookies();
-        clearBrowserLocalStorage();
         open("/");
         var closeButton = $("[class^='MainBannerModal_closeIcon']");
 
@@ -39,7 +34,12 @@ public class TicketonTestFields {
         }
     }
 
-    @Disabled
+    @AfterEach
+    void clearDatas() {
+        clearBrowserCookies();
+        clearBrowserLocalStorage();
+    }
+
     @ParameterizedTest
     @MethodSource("languageProvider")
     void testHtmlLangAttribute(String btnText, String expectedLang, String expectedText) {
@@ -81,17 +81,18 @@ public class TicketonTestFields {
                 .shouldHave(Condition.text(city));
     }
 
-    @Disabled
     @Test
     void testSearchFieldClear() {
         open("/");
 
-        var searchInput = $(By.xpath("//input[@placeholder='Поиск событий']"));
+        var searchInput = $("input[name='search']");
 
         searchInput.setValue("Saluki");
         searchInput.shouldHave(Condition.value("Saluki"));
 
-        searchInput.clear();
+        searchInput.sendKeys(Keys.CONTROL + "a");
+        searchInput.sendKeys(Keys.BACK_SPACE);
+
 
         searchInput.shouldBe(Condition.empty);
     }
